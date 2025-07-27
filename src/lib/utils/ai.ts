@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import OpenAI from 'openai' ;
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -7,10 +7,10 @@ const openai = new OpenAI({
 export async function explainCode(code: string, language: string): Promise<string> {
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-3.5-turbo' ,
       messages: [
         {
-          role: 'system',
+          role: 'system' ,
           content: `You are a helpful coding assistant. Explain the given ${language} code in a clear, concise manner. Focus on what the code does, how it works, and any important concepts or patterns used.`,
         },
         {
