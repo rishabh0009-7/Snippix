@@ -1,7 +1,7 @@
 import {z} from "zod"
 
 
-export const SnippetSchema = z.object ({
+export const createSnippetSchema = z.object ({
     title: z.string().min(1, 'Title is required').max(100, 'Title too long'),
   description: z.string().max(500, 'Description too long').optional(),
   code: z.string().min(1, 'Code is required'),
