@@ -6,6 +6,7 @@ import User from '@/src/lib/models/User';
 import { createSnippetSchema } from '@/src/lib/validations/snippet';
 import { createResponse , createErrorResponse } from '@/src/lib/utils/helper';
 import Snippets from '@/app/create-snippet/page';
+import { error } from 'console';
 // fetch all snippet for user 
 export async function GET (request :NextRequest){
     try {
@@ -81,3 +82,61 @@ const total = await countDocuments(query)
 }
 
 
+// create new snippet 
+
+export async function POST(request:NextRequest) {
+try{
+
+    // check auth 
+    const {userID} = auth ()
+    if(!userID) {
+        return createErrorResponse("please login to create snippet " , 401 )
+        
+        
+    }
+    
+    await connectToDatabase()
+    
+    
+    const user  = await User.find({clerkId :userID})
+    if(!user){
+        return createErrorResponse('User not found', 404);
+    }
+    
+    // get and validate request body 
+    
+    const body = await request.json()
+    
+    const validateData = createSnippetSchema.parse(body)
+    
+    
+    // create new snippet 
+    const snippet = new Snippet({
+        ...validateData,
+        userId :user._id,
+        tags:validateData.tags?.map(tage=>tag.toLowercase())|| []
+    })
+    
+    
+    await snippet.save()
+    await snippet.populate('category', 'name color')
+    
+    return createResponse({snippet}, 201)
+    
+}catch (error) {
+    console.error(' POST snippet error:', error);
+    if (error.name === 'ZodError') {
+      return createErrorResponse('Invalid input data', 400);
+    }
+    return createErrorResponse('Failed to create snippet', 500);
+  }
+}
+    
+
+
+
+
+
+
+
+    
