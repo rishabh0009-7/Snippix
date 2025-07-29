@@ -1,63 +1,205 @@
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from '@clerk/nextjs'
-import { Code2, Search, Plus } from 'lucide-react'
+// src/components/Navbar.tsx
+'use client';
 
-export default function Navbar() {
+import Link from 'next/link';
+import { useUser, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import { Code2, Menu, X } from 'lucide-react';
+import { useState } from 'react';
+
+interface NavbarProps {
+  showAuthButtons?: boolean;
+  showSnippetsLink?: boolean;
+}
+
+export default function Navbar({ 
+  showAuthButtons = true, 
+  showSnippetsLink = false 
+}: NavbarProps) {
+  const { isSignedIn, user, isLoaded } = useUser();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
-    <nav className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50 backdrop-blur-xl bg-white/95">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="flex justify-between items-center h-18">
-          {/* Logo and Brand */}
-          <div className="flex items-center space-x-3">
-            <div className="bg-slate-800 p-2.5 rounded-xl shadow-md">
-              <Code2 className="h-6 w-6 text-white" />
+    <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+              <Code2 className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-              Snippix
-            </h1>
+            <span className="text-xl font-semibold text-gray-900">Snippix</span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {/* Navigation Links */}
+            <div className="flex items-center space-x-6">
+              <Link 
+                href="/#features" 
+                className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
+              >
+                Features
+              </Link>
+              <Link 
+                href="/#how-it-works" 
+                className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
+              >
+                How it works
+              </Link>
+              {showSnippetsLink && isSignedIn && (
+                <Link 
+                  href="/snippets" 
+                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
+                >
+                  My Snippets
+                </Link>
+              )}
+            </div>
+
+            {/* Authentication Section */}
+            {showAuthButtons && isLoaded && (
+              <div className="flex items-center space-x-4">
+                {isSignedIn ? (
+                  <div className="flex items-center space-x-4">
+                    <Link
+                      href="/snippets"
+                      className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
+                    >
+                      Dashboard
+                    </Link>
+                    <div className="flex items-center space-x-3">
+                      <span className="text-sm text-gray-600 hidden lg:block">
+                        Welcome, {user?.firstName || user?.emailAddresses[0]?.emailAddress}
+                      </span>
+                      <UserButton 
+                        afterSignOutUrl="/"
+                        appearance={{
+                          elements: {
+                            avatarBox: "w-8 h-8"
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-3">
+                    <SignInButton mode="modal">
+                      <button className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium px-4 py-2 rounded-lg">
+                        Sign In
+                      </button>
+                    </SignInButton>
+                    <SignUpButton mode="modal">
+                      <button className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium">
+                        Get Started
+                      </button>
+                    </SignUpButton>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-      
-
-          {/* Auth Buttons */}
-          <div className="flex items-center space-x-4">
-            <SignedOut>
-              <SignInButton>
-                <button className="text-slate-600 hover:text-slate-900 px-5 py-2.5 text-sm font-semibold transition-colors rounded-xl hover:bg-slate-50">
-                  Sign In
-                </button>
-              </SignInButton>
-              <SignUpButton>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-sm px-7 py-3 transition-all duration-200 shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-0.5">
-                  Get Started
-                </button>
-              </SignUpButton>
-            </SignedOut>
-            
-            <SignedIn>
-              
-              <div className="border-l border-slate-200 pl-5 ml-4">
-                <UserButton 
-                  appearance={{
-                    elements: {
-                      avatarBox: "h-10 w-10 ring-2 ring-slate-200 hover:ring-blue-300 transition-all"
-                    }
-                  }}
-                />
-              </div>
-            </SignedIn>
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <button
+              onClick={toggleMobileMenu}
+              className="text-gray-600 hover:text-gray-900 transition-colors p-2"
+              aria-label="Toggle mobile menu"
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
+            </button>
           </div>
         </div>
 
-        
-        
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden py-4 border-t border-gray-100">
+            <div className="flex flex-col space-y-4">
+              {/* Navigation Links */}
+              <Link 
+                href="/#features" 
+                className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium px-2 py-1"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Features
+              </Link>
+              <Link 
+                href="/#how-it-works" 
+                className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium px-2 py-1"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                How it works
+              </Link>
+              {showSnippetsLink && isSignedIn && (
+                <Link 
+                  href="/snippets" 
+                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium px-2 py-1"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  My Snippets
+                </Link>
+              )}
+
+              {/* Authentication Section */}
+              {showAuthButtons && isLoaded && (
+                <div className="pt-4 border-t border-gray-100">
+                  {isSignedIn ? (
+                    <div className="flex flex-col space-y-3">
+                      <div className="flex items-center space-x-3 px-2">
+                        <UserButton 
+                          afterSignOutUrl="/"
+                          appearance={{
+                            elements: {
+                              avatarBox: "w-8 h-8"
+                            }
+                          }}
+                        />
+                        <span className="text-sm text-gray-600">
+                          {user?.firstName || user?.emailAddresses[0]?.emailAddress}
+                        </span>
+                      </div>
+                      <Link
+                        href="/snippets"
+                        className="text-gray-900 font-medium text-sm px-2 py-1"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Dashboard
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col space-y-3">
+                      <SignInButton mode="modal">
+                        <button 
+                          className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium text-left px-2 py-1"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Sign In
+                        </button>
+                      </SignInButton>
+                      <SignUpButton mode="modal">
+                        <button 
+                          className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium text-center"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Get Started
+                        </button>
+                      </SignUpButton>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
-  )
+  );
 }
